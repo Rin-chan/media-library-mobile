@@ -1,3 +1,7 @@
+# Custom
+appsettings.json
+
+# NodeJS
 node_modules/
 .expo/
 dist/
