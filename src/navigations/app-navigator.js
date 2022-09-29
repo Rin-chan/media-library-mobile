@@ -1,14 +1,14 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import LoginScreen from '../scenes/login';
+import IndexScreen from '../scenes/uploadPortal';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 const AppNavigator = () => {
     return (
-        <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown: false}}>
-            <Stack.Screen name="Login" component={LoginScreen}/>
+        <Stack.Navigator initialRouteName="Index" screenOptions={{headerShown: false}}>
+            <Stack.Screen name="Index" component={IndexScreen}/>
         </Stack.Navigator>
     );
 }
