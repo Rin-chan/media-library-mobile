@@ -5,10 +5,11 @@ import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 
 import { Header } from '../../components';
 import { Typography, Colors } from '../../styles';
-import { CreateDraft } from '../../utils/controllers/DraftController';
+import { ImageEntity, CoordinateObj } from '../../utils/models';
 
 import StepOneScreen from './StepOneScreen';
 import StepTwoScreen from './StepTwoScreen';
+import StepThreeScreen from './StepThreeScreen';
 
 const nextBtnTextStyle = {
     color: Colors.WHITE
@@ -37,9 +38,12 @@ const IndexScreen = () => {
     const [location, onChangeLocation] = useState("");
     const [copyright, onChangeCopyright] = useState("URA");
     const [stepOneError, setStepOneError] = useState(false);
+    const [imageEntitiesArray, setImageEntitiesArray] = useState(Array);
+
+    // Placeholder
+    const author = "nian.ci@hotmail.com";
 
     const stepOne = () => {
-        /*
         if (name == "" || location == "") {
             setStepOneError(true);
             return;
@@ -49,9 +53,49 @@ const IndexScreen = () => {
             setStepOneError(true);
             return;
         }
-        */
 
+        let newImageEntitiesArray = new Array;
+
+        for (let i in imageList) {
+            let imageObj = new ImageEntity();
+            imageObj.Id = imageList[i].key;
+            imageObj.Name = imageList[i].key;
+            
+            if (imageList[i].exif.DateTime != null) {
+                imageObj.DateTaken = imageList[i].exif.DateTime;
+            }
+
+            if ((imageList[i].exif.GPSLatitude != null) && (imageList[i].exif.GPSLongitude != null)) {
+                const coordinate = new Array;
+                coordinate.push(imageList[i].exif.GPSLatitude);
+                coordinate.push(imageList[i].exif.GPSLongitude);
+
+                let geoPoint = new CoordinateObj();
+                geoPoint.type = "Point";
+                geoPoint.coordinates = coordinate;
+
+                imageObj.Location = geoPoint;
+            }
+            else {
+                imageObj.Location = "null";
+            }
+            
+            imageObj.Author = author;
+            imageObj.Project = name;
+            imageObj.Copyright = copyright;
+            imageObj.FileURL = imageList[i].uri;
+            imageObj.ThumbnailURL = imageList[i].uri;
+            imageObj.LocationName = location;
+        
+            newImageEntitiesArray.push(imageObj);
+        }
+
+        setImageEntitiesArray(newImageEntitiesArray);
         setStepOneError(false);
+    }
+    
+    const backStepOne = () => {
+        setImageEntitiesArray(Array);
     }
 
     return (
@@ -96,8 +140,12 @@ const IndexScreen = () => {
                             nextBtnStyle={nextBtnStyle} 
                             nextBtnTextStyle={nextBtnTextStyle} 
                             previousBtnStyle={previousBtnStyle} 
-                            previousBtnTextStyle={previousBtnTextStyle}>
-                            <StepTwoScreen />
+                            previousBtnTextStyle={previousBtnTextStyle}
+                            onPrevious={() => backStepOne()}>
+                            <StepTwoScreen
+                                imageEntitiesArray={imageEntitiesArray}
+                                setImageEntitiesArray={setImageEntitiesArray}
+                            />
                         </ProgressStep>
 
                         <ProgressStep 
@@ -106,9 +154,9 @@ const IndexScreen = () => {
                             nextBtnTextStyle={nextBtnTextStyle} 
                             previousBtnStyle={previousBtnStyle} 
                             previousBtnTextStyle={previousBtnTextStyle}>
-                            <View style={{ alignItems: 'center' }}>
-                                <Text>This is the content within step 3!</Text>
-                            </View>
+                            <StepThreeScreen 
+                                imageEntitiesArray={imageEntitiesArray}
+                            />
                         </ProgressStep>
                     </ProgressSteps>
                 </SafeAreaView>

@@ -17,6 +17,7 @@ const StepOneScreen = ({imageList, setImageList, name, onChangeName, location, o
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 1,
+            exif: true
         });
 
         result.key = uuid.v4();
@@ -179,7 +180,15 @@ const styles = StyleSheet.create({
         marginTop: "1%",
         marginBottom: "1%",
         padding: "1%",
-        backgroundColor: Colors.WHITE
+        backgroundColor: Colors.WHITE,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
     },
     centeredView: {
         flex: 1,
