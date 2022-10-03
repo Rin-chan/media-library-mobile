@@ -1,17 +1,15 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Dimensions, Modal } from 'react-native';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import { View, Text, StyleSheet } from 'react-native';
 
 import { Colors, Typography } from '../../styles';
 
 import { DisplayItem } from '../../components';
 
-const imageWidth = Dimensions.get('window').width * 0.6;
+const StepThreeScreen = ({imageEntitiesArray}) => {
+    const [selectedImages, setSelectedImages] = useState(Array);
 
-const StepThreeScreen = () => {
-    const num = 0;
+    const num = imageEntitiesArray.length;
 
     return (
         <View style={styles.container}>
@@ -26,10 +24,12 @@ const StepThreeScreen = () => {
             />
 
             <View style={styles.imageList}>
-                <DisplayItem update={false}/>
+                {
+                    imageEntitiesArray.map((image) =>
+                        <DisplayItem key={image.Id} image={image} update={false} selectedImages={selectedImages} setSelectedImages={setSelectedImages}/>
+                    )
+                }
             </View>
-
-            <Text style={[Typography.FontFamilyNormal, styles.numImages]}>Uploading {num} image&#40;s&#41;</Text>
         </View>
     );
 };

@@ -95,8 +95,25 @@ const IndexScreen = () => {
     }
     
     const backStepOne = () => {
-        setImageEntitiesArray(Array);
+        setImageEntitiesArray(new Array);
     }
+
+    // Submit
+    const [currentStep, setCurrentStep] = useState(0);
+
+    const submit = () => {
+        onChangeName("");
+        onChangeLocation("");
+        onChangeCopyright("URA");
+        setImageList(new Array);
+        setImageEntitiesArray(new Array);
+
+        setCurrentStep(0);
+    }
+
+    React.useEffect(() => {
+        console.log(currentStep)
+    }, [currentStep])
 
     return (
         <View style={styles.container}>
@@ -114,7 +131,8 @@ const IndexScreen = () => {
                         activeLabelColor={Colors.BLACK} 
                         completedProgressBarColor={Colors.GRAY} 
                         completedStepIconColor={Colors.BLUE} 
-                        completedLabelColor={Colors.BLACK}>
+                        completedLabelColor={Colors.BLACK}
+                        activeStep={currentStep}>
 
                         <ProgressStep 
                             label="Image Upload" 
@@ -141,7 +159,9 @@ const IndexScreen = () => {
                             nextBtnTextStyle={nextBtnTextStyle} 
                             previousBtnStyle={previousBtnStyle} 
                             previousBtnTextStyle={previousBtnTextStyle}
-                            onPrevious={() => backStepOne()}>
+                            onPrevious={() => backStepOne()}
+                            onNext={() => setCurrentStep(2)}
+                            >
                             <StepTwoScreen
                                 imageEntitiesArray={imageEntitiesArray}
                                 setImageEntitiesArray={setImageEntitiesArray}
@@ -153,7 +173,8 @@ const IndexScreen = () => {
                             nextBtnStyle={nextBtnStyle} 
                             nextBtnTextStyle={nextBtnTextStyle} 
                             previousBtnStyle={previousBtnStyle} 
-                            previousBtnTextStyle={previousBtnTextStyle}>
+                            previousBtnTextStyle={previousBtnTextStyle}
+                            onSubmit={() => submit()}>
                             <StepThreeScreen 
                                 imageEntitiesArray={imageEntitiesArray}
                             />
