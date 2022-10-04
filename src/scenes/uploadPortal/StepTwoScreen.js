@@ -93,6 +93,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
         }
 
         setSingleAdditionalFields(temArray);
+        setSingleScrollView(singleScrollView - 40);
     }
 
     const updateSingleField = (key, text, location) => {
@@ -172,6 +173,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
         }
 
         setBatchAdditionalFields(temArray);
+        setBatchScrollView(batchScrollView - 40);
     }
 
     const updateBatchField = (key, text, location) => {
