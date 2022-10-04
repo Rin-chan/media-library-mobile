@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Dimensions,
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Dropdown } from 'react-native-element-dropdown';
+import uuid from 'react-native-uuid';
 
 import { Colors, Typography } from '../../styles';
 
@@ -20,15 +21,18 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
     // Single Edit
     const [singleModalVisible, setSingleModalVisible] = useState(false);
     const [singleEdit, setSingleEdit] = useState(Object);
+    const [singleScrollView, setSingleScrollView] = useState(modalHeight * 2);
 
     const [singleName, onSingleName] = useState("");
     const [singleLocation, onSingleLocation] = useState("");
     const [singleCopyright, onSingleCopyright] = useState("");
     const [singleCaption, onSingleCaption] = useState("");
     const [singleTag, onSingleTag] = useState("");
+    const [singleAdditionalFields, setSingleAdditionalFields] = useState(Array);
 
     // Mass Edit
     const [batchModalVisible, setBatchModalVisible] = useState(false);
+    const [batchScrollView, setBatchScrollView] = useState(modalHeight * 2);
 
     const [openName, setOpenName] = useState(false);
     const [valueName, setValueName] = useState("nil");
@@ -50,6 +54,8 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
     const [valueTag, setValueTag] = useState("nil");
     const [batchTag, onBatchTag] = useState("");
 
+    const [batchAdditionalFields, setBatchAdditionalFields] = useState(Array);
+
     const updateOptions = [
         { value: "nil", label: "No change" }, 
         { value: "begin", label: "Insert at beginning" }, 
@@ -64,13 +70,57 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
     ];
 
     const num = imageEntitiesArray.length;
-    
+
+    const addSingleField = () => {
+        let item = new Object();
+        item.id = uuid.v4();
+        item.label = "";
+        item.value = "";
+
+        let temArray = [...singleAdditionalFields];
+        temArray.push(item);
+        setSingleAdditionalFields(temArray);
+        setSingleScrollView(singleScrollView + 40);
+    }
+
+    const removeSingleField = (key) => {
+        let temArray = new Array;
+
+        for (let index in singleAdditionalFields) {
+            if (key != singleAdditionalFields[index].id) {
+                temArray.push(singleAdditionalFields[index]);
+            }
+        }
+
+        setSingleAdditionalFields(temArray);
+    }
+
+    const updateSingleField = (key, text, location) => {
+        let temArray = new Array;
+
+        for (let index in singleAdditionalFields) {
+            if (key == singleAdditionalFields[index].id) {
+                if (location == "label") {
+                    singleAdditionalFields[index].label = text;
+                }
+                else {
+                    singleAdditionalFields[index].value = text;
+                }
+            }
+
+            temArray.push(singleAdditionalFields[index]);
+        }
+
+        setSingleAdditionalFields(temArray)
+    }
+
     const singleReset = () => {
         onSingleName(singleEdit.Project);
         onSingleLocation(singleEdit.LocationName);
         onSingleCopyright(singleEdit.Copyright);
         onSingleCaption(singleEdit.Caption);
         onSingleTag(singleEdit.Tag);
+        setSingleAdditionalFields(singleEdit.AdditionalField);
     }
 
     const singleSave = () => {
@@ -83,6 +133,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
                 imageEntitiesArray[index].Copyright = singleCopyright;
                 imageEntitiesArray[index].Caption = singleCaption;
                 imageEntitiesArray[index].Tag = singleTag;
+                imageEntitiesArray[index].AdditionalField = singleAdditionalFields;
             }
 
             temArray.push(imageEntitiesArray[index]);
@@ -90,12 +141,56 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
 
         setImageEntitiesArray(temArray);
 
-        onSingleName(singleEdit.Project);
-        onSingleLocation(singleEdit.LocationName);
-        onSingleCopyright(singleEdit.Copyright);
-        onSingleCaption(singleEdit.Caption);
-        onSingleTag(singleEdit.Tag);
+        onSingleName(singleName);
+        onSingleLocation(singleLocation);
+        onSingleCopyright(singleCopyright);
+        onSingleCaption(singleCaption);
+        onSingleTag(singleTag);
+        setSingleAdditionalFields(singleAdditionalFields);
         setSingleModalVisible(!singleModalVisible)
+    }
+
+    const addBatchField = () => {
+        let item = new Object();
+        item.id = uuid.v4();
+        item.label = "";
+        item.value = "";
+
+        let temArray = [...batchAdditionalFields];
+        temArray.push(item);
+        setBatchAdditionalFields(temArray);
+        setBatchScrollView(batchScrollView + 40);
+    }
+
+    const removeBatchField = (key) => {
+        let temArray = new Array;
+
+        for (let index in batchAdditionalFields) {
+            if (key != batchAdditionalFields[index].id) {
+                temArray.push(batchAdditionalFields[index]);
+            }
+        }
+
+        setBatchAdditionalFields(temArray);
+    }
+
+    const updateBatchField = (key, text, location) => {
+        let temArray = new Array;
+
+        for (let index in batchAdditionalFields) {
+            if (key == batchAdditionalFields[index].id) {
+                if (location == "label") {
+                    batchAdditionalFields[index].label = text;
+                }
+                else {
+                    batchAdditionalFields[index].value = text;
+                }
+            }
+
+            temArray.push(batchAdditionalFields[index]);
+        }
+
+        setBatchAdditionalFields(temArray)
     }
 
     const batchReset = () => {
@@ -104,6 +199,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
         onBatchCopyright("");
         onBatchCaption("");
         onBatchTag("");
+        setBatchAdditionalFields(new Array);
     }
 
     const batchSave = () => {
@@ -162,6 +258,12 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
                 }
             }
 
+            let newAdditionalFields = imageEntitiesArray[index].AdditionalField;
+            for (let index in batchAdditionalFields) {
+                newAdditionalFields.push(batchAdditionalFields[index])
+            }
+            imageEntitiesArray[index].AdditionalField = newAdditionalFields;
+
             temArray.push(imageEntitiesArray[index]);
         }
 
@@ -172,6 +274,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
         onBatchCopyright("");
         onBatchCaption("");
         onBatchTag("");
+        setBatchAdditionalFields(new Array);
         setValueName("nil");
         setValueProject("nil");
         setValueCopyright("nil");
@@ -207,6 +310,7 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
                     onSingleCopyright(imageEntitiesArray[index].Copyright);
                     onSingleCaption(imageEntitiesArray[index].Caption);
                     onSingleTag(imageEntitiesArray[index].Tag);
+                    setSingleAdditionalFields(imageEntitiesArray[index].AdditionalField);
                 }
             }
         }
@@ -301,98 +405,145 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
                     <View style={styles.centeredView}>
                         <View style={styles.modalView}>
                             <ScrollView showsVerticalScrollIndicator={false}>
-                                <View style={{flexDirection: "row", justifyContent: "space-between"}}>
-                                    <Text style={[Typography.FontFamilyNormal, Typography.h2, {marginBottom: 15}]}>{singleEdit.Name}</Text>
-                                    <TouchableOpacity
-                                        onPress={() => setSingleModalVisible(!singleModalVisible)}>
-                                        <Text style={Typography.FontFamilyBold}>X</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <View
-                                    style={{
-                                        borderBottomColor: Colors.BLACK,
-                                        borderBottomWidth: StyleSheet.hairlineWidth,
-                                    }}
-                                />
-
-                                <Image source={{uri: singleEdit.FileURL}} style={styles.image}/>
-
-                                <View style={styles.imageEdit}>
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Name:</Text>
-
-                                        <View style={{flex:2}}>
-                                            <TextInput 
-                                                style={[Typography.FontFamilyNormal, styles.input]}
-                                                onChangeText={onSingleName}
-                                                value={singleName}
-                                            />
-                                        </View>
+                                <View style={{height: singleScrollView}}>
+                                    <View style={{flexDirection: "row", justifyContent: "space-between"}}>
+                                        <Text style={[Typography.FontFamilyNormal, Typography.h2, {marginBottom: 15}]}>{singleEdit.Name}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setSingleModalVisible(!singleModalVisible)}>
+                                            <Text style={Typography.FontFamilyBold}>X</Text>
+                                        </TouchableOpacity>
                                     </View>
 
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Location:</Text>
+                                    <View
+                                        style={{
+                                            borderBottomColor: Colors.BLACK,
+                                            borderBottomWidth: StyleSheet.hairlineWidth,
+                                        }}
+                                    />
 
-                                        <View style={{flex:2}}>
-                                            <TextInput 
-                                                style={[Typography.FontFamilyNormal, styles.input]}
-                                                onChangeText={onSingleLocation}
-                                                value={singleLocation}
-                                            />
+                                    <Image source={{uri: singleEdit.FileURL}} style={styles.image}/>
+
+                                    <View style={styles.imageEdit}>
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Name:</Text>
+
+                                            <View style={{flex:2}}>
+                                                <TextInput 
+                                                    style={[Typography.FontFamilyNormal, styles.input]}
+                                                    onChangeText={onSingleName}
+                                                    value={singleName}
+                                                />
+                                            </View>
                                         </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Location:</Text>
+
+                                            <View style={{flex:2}}>
+                                                <TextInput 
+                                                    style={[Typography.FontFamilyNormal, styles.input]}
+                                                    onChangeText={onSingleLocation}
+                                                    value={singleLocation}
+                                                />
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Copyright Owner:</Text>
+
+                                            <View style={{flex:2}}>
+                                                <TextInput 
+                                                    style={[Typography.FontFamilyNormal, styles.input]}
+                                                    onChangeText={onSingleCopyright}
+                                                    value={singleCopyright}
+                                                />
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Caption:</Text>
+
+                                            <View style={{flex:2}}>
+                                                <TextInput 
+                                                    style={[Typography.FontFamilyNormal, styles.input]}
+                                                    onChangeText={onSingleCaption}
+                                                    value={singleCaption}
+                                                />
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Tags:</Text>
+
+                                            <View style={{flex:2}}>
+                                                <TextInput 
+                                                    style={[Typography.FontFamilyNormal, styles.input]}
+                                                    onChangeText={onSingleTag}
+                                                    value={singleTag}
+                                                />
+                                                <Text style={Typography.FontFamilyLight}>Tags are separated with a comma</Text>
+                                            </View>
+                                        </View>
+
+                                        {
+                                            singleAdditionalFields.length > 0 && 
+                                            <View style={styles.imageDetails}>
+                                                <Text style={[Typography.FontFamilyBold, Typography.h1, styles.inputLabel, {margin: 10}]}>Label Name : Value</Text>
+                                            </View>
+                                        }
+
+                                        {
+                                            singleAdditionalFields.map((field) => 
+                                            <View key={field.id} style={styles.imageDetails}>
+                                                <View style={{flex:2}}>
+                                                    <TextInput 
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        placeholder={"Enter label"}
+                                                        onChangeText={(text) => updateSingleField(field.id,text,"label")}
+                                                        value={field.label}
+                                                    />
+                                                </View>
+
+                                                <Text style={[Typography.FontFamilyBold, styles.inputLabel, {textAlign: "center"}]}>:</Text>
+
+                                                <View style={{flex:2}}>
+                                                    <TextInput 
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        placeholder={"Enter value"}
+                                                        onChangeText={(text) => updateSingleField(field.id,text,"value")}
+                                                        value={field.value}
+                                                    />
+                                                </View>
+
+                                                <TouchableOpacity
+                                                    style={[styles.button]}
+                                                    onPress={() => removeSingleField(field.id)}>
+                                                    <Text style={[Typography.FontFamilyBold, {color: Colors.RED, textAlign: "center"}]}>X</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            )
+                                        }
+
+                                        <TouchableOpacity
+                                            style={[styles.button, {marginLeft: 0}]}
+                                            onPress={() => addSingleField()}>
+                                                <Text style={[Typography.FontFamilyBold, Typography.h2, {color: Colors.RED}]}>+ Add new Field</Text>
+                                        </TouchableOpacity>
                                     </View>
 
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Copyright Owner:</Text>
+                                    <View style={styles.buttonRow}>
+                                        <TouchableOpacity
+                                            style={[styles.button, {backgroundColor: Colors.SECONDARY}]}
+                                            onPress={() => singleReset()}>
+                                                <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Reset</Text>
+                                        </TouchableOpacity>
 
-                                        <View style={{flex:2}}>
-                                            <TextInput 
-                                                style={[Typography.FontFamilyNormal, styles.input]}
-                                                onChangeText={onSingleCopyright}
-                                                value={singleCopyright}
-                                            />
-                                        </View>
+                                        <TouchableOpacity
+                                            style={[styles.button, {backgroundColor: Colors.PRIMARY}]}
+                                            onPress={() => singleSave()}>
+                                                <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Save</Text>
+                                        </TouchableOpacity>
                                     </View>
-
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Caption:</Text>
-
-                                        <View style={{flex:2}}>
-                                            <TextInput 
-                                                style={[Typography.FontFamilyNormal, styles.input]}
-                                                onChangeText={onSingleCaption}
-                                                value={singleCaption}
-                                            />
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Tags:</Text>
-
-                                        <View style={{flex:2}}>
-                                            <TextInput 
-                                                style={[Typography.FontFamilyNormal, styles.input]}
-                                                onChangeText={onSingleTag}
-                                                value={singleTag}
-                                            />
-                                            <Text style={Typography.FontFamilyLight}>Tags are separated with a comma</Text>
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <View style={styles.buttonRow}>
-                                    <TouchableOpacity
-                                        style={[styles.button, {backgroundColor: Colors.SECONDARY}]}
-                                        onPress={() => singleReset()}>
-                                            <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Reset</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.button, {backgroundColor: Colors.PRIMARY}]}
-                                        onPress={() => singleSave()}>
-                                            <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Save</Text>
-                                    </TouchableOpacity>
                                 </View>
                             </ScrollView>
                         </View>
@@ -407,200 +558,248 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
                     >
                     <View style={styles.centeredView}>
                         <View style={styles.modalView}>
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom : 100}}>
-                                <View style={{flexDirection: "row", justifyContent: "space-between"}}>
-                                    <Text style={[Typography.FontFamilyNormal, Typography.h2,{marginBottom: 15}]}>Edit Details</Text>
-                                    <TouchableOpacity
-                                        onPress={() => setBatchModalVisible(!batchModalVisible)}>
-                                        <Text style={Typography.FontFamilyBold}>X</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <View
-                                    style={{
-                                        borderBottomColor: Colors.BLACK,
-                                        borderBottomWidth: StyleSheet.hairlineWidth,
-                                    }}
-                                />
-
-                                <Text style={Typography.FontFamilyLight}>Note:</Text>
-                                <Text style={[Typography.FontFamilyLight, {marginLeft: "5%"}]}>&#8901; Edits will be made only to selected uploads</Text>
-                                <Text style={[Typography.FontFamilyLight, {marginLeft: "5%"}]}>&#8901; Additional fields will be appended and not overwritten</Text>
-
-                                <View style={styles.imageEdit}>
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Name:</Text>
-
-                                        <View style={styles.dropdownView}>
-                                            <Dropdown
-                                                style={[styles.dropdown, openName && { borderColor: 'blue' }]}
-                                                data={updateOptions}
-                                                search={false}
-                                                maxHeight={300}
-                                                labelField="label"
-                                                valueField="value"
-                                                placeholder={!openName ? 'No change' : '...'}
-                                                value={valueName}
-                                                onFocus={() => setOpenName(true)}
-                                                onBlur={() => setOpenName(false)}
-                                                onChange={item => {
-                                                    setValueName(item.value);
-                                                    setOpenName(false);
-                                                }}
-                                            />
-
-                                            {
-                                                valueName != "nil" &&
-                                                <TextInput
-                                                    style={[Typography.FontFamilyNormal, styles.input]}
-                                                    onChangeText={onBatchName}
-                                                    value={batchName}
-                                                />
-                                            }
-                                        </View>
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <View style={{height: batchScrollView}}>
+                                    <View style={{flexDirection: "row", justifyContent: "space-between"}}>
+                                        <Text style={[Typography.FontFamilyNormal, Typography.h2, {marginBottom: 15}]}>Edit Details</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setBatchModalVisible(!batchModalVisible)}>
+                                            <Text style={Typography.FontFamilyBold}>X</Text>
+                                        </TouchableOpacity>
                                     </View>
 
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Location:</Text>
+                                    <View
+                                        style={{
+                                            borderBottomColor: Colors.BLACK,
+                                            borderBottomWidth: StyleSheet.hairlineWidth,
+                                        }}
+                                    />
 
-                                        <View style={styles.dropdownView}>
-                                            <Dropdown
-                                                style={[styles.dropdown, openProject && { borderColor: 'blue' }]}
-                                                data={updateOptions}
-                                                search={false}
-                                                maxHeight={300}
-                                                labelField="label"
-                                                valueField="value"
-                                                placeholder={!openProject ? 'No change' : '...'}
-                                                value={valueProject}
-                                                onFocus={() => setOpenProject(true)}
-                                                onBlur={() => setOpenProject(false)}
-                                                onChange={item => {
-                                                    setValueProject(item.value);
-                                                    setOpenProject(false);
-                                                }}
-                                            />
+                                    <Text style={Typography.FontFamilyLight}>Note:</Text>
+                                    <Text style={[Typography.FontFamilyLight, {marginLeft: "5%"}]}>&#8901; Edits will be made only to selected uploads</Text>
+                                    <Text style={[Typography.FontFamilyLight, {marginLeft: "5%"}]}>&#8901; Additional fields will be appended and not overwritten</Text>
 
-                                            {
-                                                valueProject != "nil" &&
-                                                <TextInput
-                                                    style={[Typography.FontFamilyNormal, styles.input]}
-                                                    onChangeText={onBatchProject}
-                                                    value={batchProject}
+                                    <View style={styles.imageEdit}>
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Name:</Text>
+
+                                            <View style={styles.dropdownView}>
+                                                <Dropdown
+                                                    style={[styles.dropdown, openName && { borderColor: 'blue' }]}
+                                                    data={updateOptions}
+                                                    search={false}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder={!openName ? 'No change' : '...'}
+                                                    value={valueName}
+                                                    onFocus={() => setOpenName(true)}
+                                                    onBlur={() => setOpenName(false)}
+                                                    onChange={item => {
+                                                        setValueName(item.value);
+                                                        setOpenName(false);
+                                                    }}
                                                 />
-                                            }
+
+                                                {
+                                                    valueName != "nil" &&
+                                                    <TextInput
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        onChangeText={onBatchName}
+                                                        value={batchName}
+                                                    />
+                                                }
+                                            </View>
                                         </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Location:</Text>
+
+                                            <View style={styles.dropdownView}>
+                                                <Dropdown
+                                                    style={[styles.dropdown, openProject && { borderColor: 'blue' }]}
+                                                    data={updateOptions}
+                                                    search={false}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder={!openProject ? 'No change' : '...'}
+                                                    value={valueProject}
+                                                    onFocus={() => setOpenProject(true)}
+                                                    onBlur={() => setOpenProject(false)}
+                                                    onChange={item => {
+                                                        setValueProject(item.value);
+                                                        setOpenProject(false);
+                                                    }}
+                                                />
+
+                                                {
+                                                    valueProject != "nil" &&
+                                                    <TextInput
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        onChangeText={onBatchProject}
+                                                        value={batchProject}
+                                                    />
+                                                }
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Copyright Owner:</Text>
+
+                                            <View style={styles.dropdownView}>
+                                                <Dropdown
+                                                    style={[styles.dropdown, openCopyright && { borderColor: 'blue' }]}
+                                                    data={updateOptions}
+                                                    search={false}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder={!openCopyright ? 'No change' : '...'}
+                                                    value={valueCopyright}
+                                                    onFocus={() => setOpenCopyright(true)}
+                                                    onBlur={() => setOpenCopyright(false)}
+                                                    onChange={item => {
+                                                        setValueCopyright(item.value);
+                                                        setOpenCopyright(false);
+                                                    }}
+                                                />
+
+                                                {
+                                                    valueCopyright != "nil" &&
+                                                    <TextInput
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        onChangeText={onBatchCopyright}
+                                                        value={batchCopyright}
+                                                    />
+                                                }
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Caption:</Text>
+
+                                            <View style={styles.dropdownView}>
+                                                <Dropdown
+                                                    style={[styles.dropdown, openCaption && { borderColor: 'blue' }]}
+                                                    data={updateOptions}
+                                                    search={false}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder={!openCaption ? 'No change' : '...'}
+                                                    value={valueCaption}
+                                                    onFocus={() => setOpenCaption(true)}
+                                                    onBlur={() => setOpenCaption(false)}
+                                                    onChange={item => {
+                                                        setValueCaption(item.value);
+                                                        setOpenCaption(false);
+                                                    }}
+                                                />
+
+                                                {
+                                                    valueCaption != "nil" &&
+                                                    <TextInput
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        onChangeText={onBatchCaption}
+                                                        value={batchCaption}
+                                                    />
+                                                }
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imageDetails}>
+                                            <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Tags:</Text>
+
+                                            <View style={styles.dropdownView}>
+                                                <Dropdown
+                                                    style={[styles.dropdown, openTag && { borderColor: 'blue' }]}
+                                                    data={updateTagsOptions}
+                                                    search={false}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder={!openTag ? 'No change' : '...'}
+                                                    value={valueTag}
+                                                    onFocus={() => setOpenTag(true)}
+                                                    onBlur={() => setOpenTag(false)}
+                                                    onChange={item => {
+                                                        setValueTag(item.value);
+                                                        setOpenTag(false);
+                                                    }}
+                                                />
+
+                                                {
+                                                    valueTag != "nil" &&
+                                                    <TextInput
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        onChangeText={onBatchTag}
+                                                        value={batchTag}
+                                                    />
+                                                }
+                                            </View>
+                                        </View>
+
+                                        {
+                                            batchAdditionalFields.length > 0 && 
+                                            <View style={styles.imageDetails}>
+                                                <Text style={[Typography.FontFamilyBold, Typography.h1, styles.inputLabel, {margin: 10}]}>Label Name : Value</Text>
+                                            </View>
+                                        }
+
+                                        {
+                                            batchAdditionalFields.map((field) => 
+                                            <View key={field.id} style={styles.imageDetails}>
+                                                <View style={{flex:2}}>
+                                                    <TextInput 
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        placeholder={"Enter label"}
+                                                        onChangeText={(text) => updateBatchField(field.id,text,"label")}
+                                                        value={field.label}
+                                                    />
+                                                </View>
+
+                                                <Text style={[Typography.FontFamilyBold, styles.inputLabel, {textAlign: "center"}]}>:</Text>
+
+                                                <View style={{flex:2}}>
+                                                    <TextInput 
+                                                        style={[Typography.FontFamilyNormal, styles.input]}
+                                                        placeholder={"Enter value"}
+                                                        onChangeText={(text) => updateBatchField(field.id,text,"value")}
+                                                        value={field.value}
+                                                    />
+                                                </View>
+
+                                                <TouchableOpacity
+                                                    style={[styles.button]}
+                                                    onPress={() => removeBatchField(field.id)}>
+                                                    <Text style={[Typography.FontFamilyBold, {color: Colors.RED, textAlign: "center"}]}>X</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            )
+                                        }
+
+
+                                        <TouchableOpacity
+                                            style={[styles.button, {marginLeft: 0}]}
+                                            onPress={() => addBatchField()}>
+                                                <Text style={[Typography.FontFamilyBold, Typography.h2, {color: Colors.RED}]}>+ Add new Field</Text>
+                                        </TouchableOpacity>
                                     </View>
 
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Copyright Owner:</Text>
+                                    <View style={styles.buttonRow}>
+                                        <TouchableOpacity
+                                            style={[styles.button, {backgroundColor: Colors.SECONDARY}]}
+                                            onPress={() => batchReset()}>
+                                                <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Reset</Text>
+                                        </TouchableOpacity>
 
-                                        <View style={styles.dropdownView}>
-                                            <Dropdown
-                                                style={[styles.dropdown, openCopyright && { borderColor: 'blue' }]}
-                                                data={updateOptions}
-                                                search={false}
-                                                maxHeight={300}
-                                                labelField="label"
-                                                valueField="value"
-                                                placeholder={!openCopyright ? 'No change' : '...'}
-                                                value={valueCopyright}
-                                                onFocus={() => setOpenCopyright(true)}
-                                                onBlur={() => setOpenCopyright(false)}
-                                                onChange={item => {
-                                                    setValueCopyright(item.value);
-                                                    setOpenCopyright(false);
-                                                }}
-                                            />
-
-                                            {
-                                                valueCopyright != "nil" &&
-                                                <TextInput
-                                                    style={[Typography.FontFamilyNormal, styles.input]}
-                                                    onChangeText={onBatchCopyright}
-                                                    value={batchCopyright}
-                                                />
-                                            }
-                                        </View>
+                                        <TouchableOpacity
+                                            style={[styles.button, {backgroundColor: Colors.PRIMARY}]}
+                                            onPress={() => batchSave()}>
+                                                <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Save</Text>
+                                        </TouchableOpacity>
                                     </View>
-
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Caption:</Text>
-
-                                        <View style={styles.dropdownView}>
-                                            <Dropdown
-                                                style={[styles.dropdown, openCaption && { borderColor: 'blue' }]}
-                                                data={updateOptions}
-                                                search={false}
-                                                maxHeight={300}
-                                                labelField="label"
-                                                valueField="value"
-                                                placeholder={!openCaption ? 'No change' : '...'}
-                                                value={valueCaption}
-                                                onFocus={() => setOpenCaption(true)}
-                                                onBlur={() => setOpenCaption(false)}
-                                                onChange={item => {
-                                                    setValueCaption(item.value);
-                                                    setOpenCaption(false);
-                                                }}
-                                            />
-
-                                            {
-                                                valueCaption != "nil" &&
-                                                <TextInput
-                                                    style={[Typography.FontFamilyNormal, styles.input]}
-                                                    onChangeText={onBatchCaption}
-                                                    value={batchCaption}
-                                                />
-                                            }
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.imageDetails}>
-                                        <Text style={[Typography.FontFamilyBold, styles.inputLabel]}>Tags:</Text>
-
-                                        <View style={styles.dropdownView}>
-                                            <Dropdown
-                                                style={[styles.dropdown, openTag && { borderColor: 'blue' }]}
-                                                data={updateTagsOptions}
-                                                search={false}
-                                                maxHeight={300}
-                                                labelField="label"
-                                                valueField="value"
-                                                placeholder={!openTag ? 'No change' : '...'}
-                                                value={valueTag}
-                                                onFocus={() => setOpenTag(true)}
-                                                onBlur={() => setOpenTag(false)}
-                                                onChange={item => {
-                                                    setValueTag(item.value);
-                                                    setOpenTag(false);
-                                                }}
-                                            />
-
-                                            {
-                                                valueTag != "nil" &&
-                                                <TextInput
-                                                    style={[Typography.FontFamilyNormal, styles.input]}
-                                                    onChangeText={onBatchTag}
-                                                    value={batchTag}
-                                                />
-                                            }
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <View style={styles.buttonRow}>
-                                    <TouchableOpacity
-                                        style={[styles.button, {backgroundColor: Colors.SECONDARY}]}
-                                        onPress={() => batchReset()}>
-                                            <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Reset</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.button, {backgroundColor: Colors.PRIMARY}]}
-                                        onPress={() => batchSave()}>
-                                            <Text style={[Typography.FontFamilyBold, styles.buttonText]}>Save</Text>
-                                    </TouchableOpacity>
                                 </View>
                             </ScrollView>
                         </View>
@@ -649,7 +848,8 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
-        elevation: 5
+        elevation: 5,
+        flex: 1
     },
     imageEdit: {
         flex: 1,
@@ -682,8 +882,7 @@ const styles = StyleSheet.create({
     },
     buttonRow: {
         flexDirection: "row",
-        justifyContent: "flex-end",
-        marginTop: 150
+        justifyContent: "flex-end"
     },
     button: {
         borderRadius: 5,

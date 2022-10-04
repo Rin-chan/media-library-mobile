@@ -111,10 +111,6 @@ const IndexScreen = () => {
         setCurrentStep(0);
     }
 
-    React.useEffect(() => {
-        console.log(currentStep)
-    }, [currentStep])
-
     return (
         <View style={styles.container}>
             <Header />

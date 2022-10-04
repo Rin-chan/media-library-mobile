@@ -11,21 +11,23 @@ const DisplayItem = ({image, update, selectedImages, setSelectedImages}) => {
     const [isChecked, setIsChecked] = useState(false);
     const [tags, setTags] = useState(Array);
 
-    let coordinate = image.Location
+    let coordinate = image.Location;
 
     if (coordinate != "null") {
         let coords = "";
         for (var i in image.Location.coordinates) {
             if (coords == "") {
-                coords += image.Location.coordinates[i]
+                coords += image.Location.coordinates[i];
             }
             else {
-                coords += ","
-                coords += image.Location.coordinates[i] 
+                coords += ",";
+                coords += image.Location.coordinates[i] ;
             }
         }
         coordinate = coords
     }
+
+    let additionalFields = image.AdditionalField;
 
     useEffect(() => {
         let found = false;
@@ -147,6 +149,20 @@ const DisplayItem = ({image, update, selectedImages, setSelectedImages}) => {
                         <Text style={[Typography.FontFamilyBold, styles.imageLabel]}>Uploaded on:</Text>
                         <Text style={[Typography.FontFamilyNormal, styles.imageDetail]}>{image.UploadDate}</Text>
                     </View>
+
+                    {
+                        additionalFields.length > 0 && 
+                        <View>
+                            {
+                                additionalFields.map((field) =>
+                                <View key={field.id} style={styles.imageDetails}>
+                                    <Text style={[Typography.FontFamilyBold, styles.imageLabel]}>{field.label}:</Text>
+                                    <Text style={[Typography.FontFamilyNormal, styles.imageDetail]}>{field.value}</Text>
+                                </View>
+                                )
+                            }
+                        </View>
+                    }
                 </View>
             </View>
         </View>

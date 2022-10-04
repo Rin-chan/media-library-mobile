@@ -7,7 +7,6 @@ const Header = () => {
     return (
         <View style={styles.container}>
             <Text style={[Typography.FontFamilyBold, Typography.h2, styles.textAlign]}>Media Library Upload Portal</Text>
-            <Text style={[Typography.FontFamilyLight, Typography.h3, styles.textAlign]}>Help</Text>
         </View>
     );
 };
@@ -16,7 +15,7 @@ const styles = StyleSheet.create({
     container: {
         padding: "5%",
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
         backgroundColor: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 1, height: 1 },
