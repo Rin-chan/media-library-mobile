@@ -10,6 +10,7 @@ import { ImageEntity, CoordinateObj } from '../../utils/models';
 import StepOneScreen from './StepOneScreen';
 import StepTwoScreen from './StepTwoScreen';
 import StepThreeScreen from './StepThreeScreen';
+import DraftController from '../../utils/controllers/DraftController';
 
 const nextBtnTextStyle = {
     color: Colors.WHITE
@@ -32,12 +33,14 @@ const previousBtnStyle = {
 }
 
 const IndexScreen = () => {
+    const [rowKey, setRowKey] = useState("");
+
     // Step 1
     const [imageList, setImageList] = useState(Array);
     const [name, onChangeName] = useState("");
     const [location, onChangeLocation] = useState("");
     const [copyright, onChangeCopyright] = useState("URA");
-    const [stepOneError, setStepOneError] = useState(false);
+    const [stepOneError, setStepOneError] = useState(true);
     const [imageEntitiesArray, setImageEntitiesArray] = useState(Array);
 
     // Placeholder
@@ -54,6 +57,9 @@ const IndexScreen = () => {
             return;
         }
 
+        const key = DraftController.CreateDraft();
+        setRowKey(key);
+        
         let newImageEntitiesArray = new Array;
 
         for (let i in imageList) {
@@ -86,6 +92,8 @@ const IndexScreen = () => {
             imageObj.FileURL = imageList[i].uri;
             imageObj.ThumbnailURL = imageList[i].uri;
             imageObj.LocationName = location;
+
+            DraftController.AddImage(imageObj, key);
         
             newImageEntitiesArray.push(imageObj);
         }
@@ -161,6 +169,7 @@ const IndexScreen = () => {
                             <StepTwoScreen
                                 imageEntitiesArray={imageEntitiesArray}
                                 setImageEntitiesArray={setImageEntitiesArray}
+                                rowKey={rowKey}
                             />
                         </ProgressStep>
 
@@ -173,6 +182,7 @@ const IndexScreen = () => {
                             onSubmit={() => submit()}>
                             <StepThreeScreen 
                                 imageEntitiesArray={imageEntitiesArray}
+                                rowKey={rowKey}
                             />
                         </ProgressStep>
                     </ProgressSteps>

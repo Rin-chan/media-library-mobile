@@ -14,7 +14,7 @@ const imageWidth = Dimensions.get('window').width * 0.6;
 const modalWidth = Dimensions.get('window').width * 0.7;
 const modalHeight = Dimensions.get('window').height * 0.7;
 
-const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray}) => {
+const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}) => {
     const [selectedImages, setSelectedImages] = useState(Array);
     const [allChecked, setAllChecked] = useState(false);
 
