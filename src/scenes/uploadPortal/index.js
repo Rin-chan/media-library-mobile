@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 
@@ -11,6 +11,7 @@ import StepOneScreen from './StepOneScreen';
 import StepTwoScreen from './StepTwoScreen';
 import StepThreeScreen from './StepThreeScreen';
 import DraftController from '../../utils/controllers/DraftController';
+import BlobController from '../../utils/controllers/BlobController';
 
 const nextBtnTextStyle = {
     color: Colors.WHITE
@@ -34,6 +35,7 @@ const previousBtnStyle = {
 
 const IndexScreen = () => {
     const [rowKey, setRowKey] = useState("");
+    const [currentStep, setCurrentStep] = useState(0);
 
     // Step 1
     const [imageList, setImageList] = useState(Array);
@@ -46,7 +48,7 @@ const IndexScreen = () => {
     // Placeholder
     const author = "nian.ci@hotmail.com";
 
-    const stepOne = () => {
+    const stepOne = async() => {
         if (name == "" || location == "") {
             setStepOneError(true);
             return;
@@ -57,24 +59,26 @@ const IndexScreen = () => {
             return;
         }
 
-        const key = DraftController.CreateDraft();
+        const key = await DraftController.CreateDraft();
         setRowKey(key);
         
         let newImageEntitiesArray = new Array;
 
-        for (let i in imageList) {
+        for await (let i of imageList) {
+            await BlobController.CreateBlob(i);
+
             let imageObj = new ImageEntity();
-            imageObj.Id = imageList[i].key;
-            imageObj.Name = imageList[i].key;
+            imageObj.Id = i.key;
+            imageObj.Name = i.key;
             
-            if (imageList[i].exif.DateTime != null) {
-                imageObj.DateTaken = imageList[i].exif.DateTime;
+            if (i.exif.DateTime != null) {
+                imageObj.DateTaken = i.exif.DateTime;
             }
 
-            if ((imageList[i].exif.GPSLatitude != null) && (imageList[i].exif.GPSLongitude != null)) {
+            if ((i.exif.GPSLatitude != null) && (i.exif.GPSLongitude != null)) {
                 const coordinate = new Array;
-                coordinate.push(imageList[i].exif.GPSLatitude);
-                coordinate.push(imageList[i].exif.GPSLongitude);
+                coordinate.push(i.exif.GPSLatitude);
+                coordinate.push(i.exif.GPSLongitude);
 
                 let geoPoint = new CoordinateObj();
                 geoPoint.type = "Point";
@@ -89,12 +93,12 @@ const IndexScreen = () => {
             imageObj.Author = author;
             imageObj.Project = name;
             imageObj.Copyright = copyright;
-            imageObj.FileURL = imageList[i].uri;
-            imageObj.ThumbnailURL = imageList[i].uri;
+            imageObj.FileURL = i.uri;
+            imageObj.ThumbnailURL = i.uri;
             imageObj.LocationName = location;
 
-            DraftController.AddImage(imageObj, key);
-        
+            await DraftController.AddImage(imageObj, key);
+
             newImageEntitiesArray.push(imageObj);
         }
 
@@ -103,21 +107,33 @@ const IndexScreen = () => {
     }
     
     const backStepOne = () => {
+        setRowKey("");
         setImageEntitiesArray(new Array);
-    }
 
-    // Submit
-    const [currentStep, setCurrentStep] = useState(0);
+        setCurrentStep(0);
+    }
 
     const submit = () => {
         onChangeName("");
         onChangeLocation("");
         onChangeCopyright("URA");
         setImageList(new Array);
+        setRowKey("");
         setImageEntitiesArray(new Array);
 
         setCurrentStep(0);
     }
+
+    useEffect(() => {
+        const deleteDraftFunc = async () => {
+            await DraftController.DeleteDraft(rowKey);
+        }
+
+        if ((rowKey != "") && (imageEntitiesArray.length == 0)) {
+            deleteDraftFunc();
+            backStepOne();
+        }
+    }, [imageEntitiesArray])
 
     return (
         <View style={styles.container}>
@@ -170,6 +186,7 @@ const IndexScreen = () => {
                                 imageEntitiesArray={imageEntitiesArray}
                                 setImageEntitiesArray={setImageEntitiesArray}
                                 rowKey={rowKey}
+                                setCurrentStep={setCurrentStep}
                             />
                         </ProgressStep>
 
@@ -179,6 +196,7 @@ const IndexScreen = () => {
                             nextBtnTextStyle={nextBtnTextStyle} 
                             previousBtnStyle={previousBtnStyle} 
                             previousBtnTextStyle={previousBtnTextStyle}
+                            onPrevious={() => setCurrentStep(1)}
                             onSubmit={() => submit()}>
                             <StepThreeScreen 
                                 imageEntitiesArray={imageEntitiesArray}

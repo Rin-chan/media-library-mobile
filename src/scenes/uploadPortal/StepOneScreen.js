@@ -15,9 +15,10 @@ const StepOneScreen = ({imageList, setImageList, name, onChangeName, location, o
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
+            base64: true,
             quality: 1,
-            exif: true
+            exif: true,
+            allowsMultipleSelection: true,
         });
 
         result.key = uuid.v4();

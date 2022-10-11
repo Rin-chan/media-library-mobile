@@ -5,7 +5,7 @@ import appsettings from '../../../appsettings.json';
 
 const email = "nian.ci@hotmail.com"
 
-function CreateDraft() {
+async function CreateDraft() {
     let newDraft = new Draft();
     newDraft.Author = email;
     newDraft.ImageEntities = new Array;
@@ -20,7 +20,7 @@ function CreateDraft() {
         'ImageEntities' : newDraft.ImageEntities.toString()
     });
 
-    axios(urlString, {
+    await axios(urlString, {
         method: "post",
         headers: {
             "Accept": "application/json",
@@ -35,29 +35,26 @@ function CreateDraft() {
 }
 
 async function AddImage(req, rowkey) {
-    let draft = "";
     let urlString = appsettings.AppSettings.TableConnectionURL+`(PartitionKey='draft',RowKey='${rowkey}')`+appsettings.AppSettings.TableConnectionParams;
 
     let response = await axios.get(urlString);
-    draft = await response.data;
+    let draft = await response.data;
 
     let imageEntitiesArray = new Array;
     if (draft.ImageEntities != "") {
-        imageEntitiesArray = Array.from(draft.ImageEntities);
+        for (let entity of JSON.parse(draft.ImageEntities)) {
+            imageEntitiesArray.push(JSON.stringify(entity));
+        }
     }
 
-    console.log(imageEntitiesArray);
-
     imageEntitiesArray.push(JSON.stringify(req));
-    
-    console.log(imageEntitiesArray);
 
     const body = JSON.stringify({
         'PartitionKey': draft.PartitionKey,
         'RowKey': draft.RowKey,
         'UploadDate': draft.UploadDate,
         'Author' : draft.Author,
-        'ImageEntities' : draft.ImageEntities.toString()
+        'ImageEntities' : "[" + imageEntitiesArray.toString() + "]"
     });
 
     axios(urlString, {
@@ -72,4 +69,107 @@ async function AddImage(req, rowkey) {
     });
 }
 
-export default {CreateDraft, AddImage};
+async function UpdateImage(req, rowkey, imageKey) {
+    let urlString = appsettings.AppSettings.TableConnectionURL+`(PartitionKey='draft',RowKey='${rowkey}')`+appsettings.AppSettings.TableConnectionParams;
+
+    let response = await axios.get(urlString);
+    let draft = await response.data;
+
+    let imageEntitiesArray = new Array;
+    if (draft.ImageEntities == "") {
+        return;
+    }
+
+    for (let entity of JSON.parse(draft.ImageEntities)) {
+        if (entity.Id == imageKey) {
+            entity.Project = req.Project;
+            entity.LocationName = req.LocationName;
+            entity.Copyright = req.Copyright;
+            entity.Caption = req.Caption;
+            entity.Tag = req.Tag;
+            entity.AdditionalField = req.AdditionalField;
+        }
+
+        imageEntitiesArray.push(JSON.stringify(entity));
+    }
+
+    const body = JSON.stringify({
+        'PartitionKey': draft.PartitionKey,
+        'RowKey': draft.RowKey,
+        'UploadDate': draft.UploadDate,
+        'Author' : draft.Author,
+        'ImageEntities' : "[" + imageEntitiesArray.toString() + "]"
+    });
+
+    axios(urlString, {
+        method: "put",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type" : "application/json"
+        },
+        data: JSON.parse(body)
+    }).catch((error) => {
+        console.log(error.response);
+    });
+}
+
+async function DeleteImage(rowkey, imageKey) {
+    let urlString = appsettings.AppSettings.TableConnectionURL+`(PartitionKey='draft',RowKey='${rowkey}')`+appsettings.AppSettings.TableConnectionParams;
+
+    let response = await axios.get(urlString);
+    let draft = await response.data;
+
+    let imageEntitiesArray = new Array;
+    if (draft.ImageEntities == "") {
+        return;
+    }
+
+    for (let entity of JSON.parse(draft.ImageEntities)) {
+        if (entity.Id != imageKey) {
+            imageEntitiesArray.push(JSON.stringify(entity));
+        }
+    }
+
+    const body = JSON.stringify({
+        'PartitionKey': draft.PartitionKey,
+        'RowKey': draft.RowKey,
+        'UploadDate': draft.UploadDate,
+        'Author' : draft.Author,
+        'ImageEntities' : "[" + imageEntitiesArray.toString() + "]"
+    });
+
+    axios(urlString, {
+        method: "put",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type" : "application/json"
+        },
+        data: JSON.parse(body)
+    }).catch((error) => {
+        console.log(error.response);
+    });
+}
+
+async function DeleteDraft(rowkey) {
+    let urlString = appsettings.AppSettings.TableConnectionURL+`(PartitionKey='draft',RowKey='${rowkey}')`+appsettings.AppSettings.TableConnectionParams;
+
+    let response = await axios.get(urlString);
+    let draft = await response.data;
+
+    if (draft.ImageEntities != "") {
+        for await (let entity of JSON.parse(draft.ImageEntities)) {
+            await DeleteImage(rowkey, entity.Id);
+        }
+    }
+
+    axios(urlString, {
+        method: "delete",
+        headers: {
+            "If-Match" : "*"
+        }
+    }).catch((error) => {
+        console.log(error.response);
+    });
+}
+
+export default {CreateDraft, AddImage, UpdateImage, DeleteImage, DeleteDraft};

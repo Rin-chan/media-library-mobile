@@ -9,12 +9,13 @@ import uuid from 'react-native-uuid';
 import { Colors, Typography } from '../../styles';
 
 import { DisplayItem } from '../../components';
+import DraftController from '../../utils/controllers/DraftController';
 
 const imageWidth = Dimensions.get('window').width * 0.6;
 const modalWidth = Dimensions.get('window').width * 0.7;
 const modalHeight = Dimensions.get('window').height * 0.7;
 
-const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}) => {
+const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, rowKey, setCurrentStep}) => {
     const [selectedImages, setSelectedImages] = useState(Array);
     const [allChecked, setAllChecked] = useState(false);
 
@@ -124,20 +125,22 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}
         setSingleAdditionalFields(singleEdit.AdditionalField);
     }
 
-    const singleSave = () => {
+    const singleSave = async() => {
         let temArray = new Array;
 
-        for (let index in imageEntitiesArray) {
-            if (imageEntitiesArray[index].Id == singleEdit.Id) {
-                imageEntitiesArray[index].Project = singleName;
-                imageEntitiesArray[index].LocationName = singleLocation;
-                imageEntitiesArray[index].Copyright = singleCopyright;
-                imageEntitiesArray[index].Caption = singleCaption;
-                imageEntitiesArray[index].Tag = singleTag;
-                imageEntitiesArray[index].AdditionalField = singleAdditionalFields;
+        for await (let entity of imageEntitiesArray) {
+            if (entity.Id == singleEdit.Id) {
+                entity.Project = singleName;
+                entity.LocationName = singleLocation;
+                entity.Copyright = singleCopyright;
+                entity.Caption = singleCaption;
+                entity.Tag = singleTag;
+                entity.AdditionalField = singleAdditionalFields;
+
+                await DraftController.UpdateImage(entity, rowKey, singleEdit.Id);
             }
 
-            temArray.push(imageEntitiesArray[index]);
+            temArray.push(entity);
         }
 
         setImageEntitiesArray(temArray);
@@ -204,69 +207,71 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}
         setBatchAdditionalFields(new Array);
     }
 
-    const batchSave = () => {
+    const batchSave = async() => {
         let temArray = new Array;
 
-        for (let index in imageEntitiesArray) {
+        for await (let entity of imageEntitiesArray) {
             if (valueName == "begin") {
-                imageEntitiesArray[index].Project = batchName + imageEntitiesArray[index].Project;
+                entity.Project = batchName + entity.Project;
             }
             else if (valueName == "end") {
-                imageEntitiesArray[index].Project = imageEntitiesArray[index].Project + batchName;
+                entity.Project = entity.Project + batchName;
             }
             else if (valueName == "all") {
-                imageEntitiesArray[index].Project = batchName;
+                entity.Project = batchName;
             }
 
             if (valueProject == "begin") {
-                imageEntitiesArray[index].LocationName = batchProject + imageEntitiesArray[index].LocationName;
+                entity.LocationName = batchProject + entity.LocationName;
             }
             else if (valueProject == "end") {
-                imageEntitiesArray[index].LocationName = imageEntitiesArray[index].LocationName + batchProject;
+                entity.LocationName = entity.LocationName + batchProject;
             }
             else if (valueProject == "all") {
-                imageEntitiesArray[index].LocationName = batchProject;
+                entity.LocationName = batchProject;
             }
             
             if (valueCopyright == "begin") {
-                imageEntitiesArray[index].Copyright = batchCopyright + imageEntitiesArray[index].Copyright;
+                entity.Copyright = batchCopyright + entity.Copyright;
             }
             else if (valueCopyright == "end") {
-                imageEntitiesArray[index].Copyright = imageEntitiesArray[index].Copyright + batchCopyright;
+                entity.Copyright = entity.Copyright + batchCopyright;
             }
             else if (valueCopyright == "all") {
-                imageEntitiesArray[index].Copyright = batchCopyright;
+                entity.Copyright = batchCopyright;
             }
 
             if (valueCaption == "begin") {
-                imageEntitiesArray[index].Caption = batchCaption + imageEntitiesArray[index].Caption;
+                entity.Caption = batchCaption + entity.Caption;
             }
             else if (valueCaption == "end") {
-                imageEntitiesArray[index].Caption = imageEntitiesArray[index].Caption + batchCaption;
+                entity.Caption = entity.Caption + batchCaption;
             }
             else if (valueCaption == "all") {
-                imageEntitiesArray[index].Caption = batchCaption;
+                entity.Caption = batchCaption;
             }
 
             if (valueTag == "all") {
-                imageEntitiesArray[index].Tag = batchTag;
+                entity.Tag = batchTag;
             }
             else if (valueTag == "end") {
-                if (imageEntitiesArray[index].Tag == "") {
-                    imageEntitiesArray[index].Tag = batchTag;
+                if (entity.Tag == "") {
+                    entity.Tag = batchTag;
                 }
                 else {
-                    imageEntitiesArray[index].Tag = imageEntitiesArray[index].Tag + "," + batchTag;
+                    entity.Tag = entity.Tag + "," + batchTag;
                 }
             }
 
-            let newAdditionalFields = imageEntitiesArray[index].AdditionalField;
+            let newAdditionalFields = entity.AdditionalField;
             for (let index in batchAdditionalFields) {
                 newAdditionalFields.push(batchAdditionalFields[index])
             }
-            imageEntitiesArray[index].AdditionalField = newAdditionalFields;
+            entity.AdditionalField = newAdditionalFields;
 
-            temArray.push(imageEntitiesArray[index]);
+            await DraftController.UpdateImage(entity, rowKey, entity.Id);
+
+            temArray.push(entity);
         }
 
         setImageEntitiesArray(temArray);
@@ -285,13 +290,15 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}
         setBatchModalVisible(!batchModalVisible);
     }
 
-    const deleteImages = () => {
+    const deleteImages = async() => {
         let temArray = [...imageEntitiesArray];
 
-        for (let i in temArray) {
-            for (let o in selectedImages) {
-                if (temArray[i].Id == selectedImages[o]) {
-                    const index = temArray.indexOf(temArray[i]);
+        for await(let i of temArray) {
+            for await(let o of selectedImages) {
+                if (i.Id == o) {
+                    await DraftController.DeleteImage(rowKey, i.Id);
+
+                    const index = temArray.indexOf(i);
                     if (index > -1) {
                         temArray.splice(index, 1);
                     }
@@ -325,6 +332,10 @@ const StepTwoScreen = ({imageEntitiesArray, setImageEntitiesArray, partitionKey}
         }
     }, [selectedImages])
 
+    useEffect(() =>{
+        setCurrentStep(1);
+    }, [])
+    
     return (
         <View style={styles.container}>
             <Text style={Typography.FontFamilyNormal}>Confirm uploads and update information as needed</Text>

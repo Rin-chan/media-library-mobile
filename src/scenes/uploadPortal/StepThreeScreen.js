@@ -6,7 +6,7 @@ import { Colors, Typography } from '../../styles';
 
 import { DisplayItem } from '../../components';
 
-const StepThreeScreen = ({imageEntitiesArray, partitionKey}) => {
+const StepThreeScreen = ({imageEntitiesArray, rowKey}) => {
     const [selectedImages, setSelectedImages] = useState(Array);
 
     const num = imageEntitiesArray.length;
